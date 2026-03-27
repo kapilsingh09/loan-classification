@@ -3,583 +3,640 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loan Prediction - AI Powered</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Loan Approval Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Syne', 'sans-serif'],
+                        body: ['DM Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        ink: '#0a0a0a',
+                        paper: '#f5f5f0',
+                        muted: '#9a9a9a',
+                        line: '#e0e0d8',
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 0.5s ease forwards',
+                        'bar-fill': 'barFill 1.2s cubic-bezier(0.16,1,0.3,1) forwards',
+                        'spin-slow': 'spin 8s linear infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            from: { opacity: '0', transform: 'translateY(16px)' },
+                            to: { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        barFill: {
+                            from: { width: '0%' },
+                        },
+                    },
+                },
+            },
+        }
+    </script>
     <style>
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --bg-primary: #0a0e1a;
-            --bg-card: rgba(15, 23, 42, 0.85);
-            --bg-input: rgba(30, 41, 69, 0.7);
-            --border-color: rgba(99, 102, 241, 0.2);
-            --border-hover: rgba(99, 102, 241, 0.5);
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --text-label: #cbd5e1;
-            --accent: #6366f1;
-            --accent-light: #818cf8;
-            --accent-glow: rgba(99, 102, 241, 0.4);
-            --success: #10b981;
-            --success-glow: rgba(16, 185, 129, 0.3);
-            --danger: #ef4444;
-            --danger-glow: rgba(239, 68, 68, 0.3);
-        }
+        * { box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem 1rem;
-            overflow-x: hidden;
-            position: relative;
+            font-family: 'DM Sans', sans-serif;
+            background-color: #f5f5f0;
+            color: #0a0a0a;
         }
 
-        /* Animated background */
+        /* Noise texture overlay */
         body::before {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                        radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
-                        radial-gradient(ellipse at 50% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
-            animation: bgShift 15s ease-in-out infinite alternate;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
             z-index: 0;
+            opacity: 0.5;
         }
 
-        @keyframes bgShift {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-3%, -3%) rotate(3deg); }
-        }
-
-        .container {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 720px;
-        }
-
-        /* Header */
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .header-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.4rem 1rem;
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: var(--accent-light);
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-bottom: 1rem;
-        }
-
-        .header-badge .dot {
-            width: 6px;
-            height: 6px;
-            background: var(--success);
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--success-glow); }
-            50% { opacity: 0.7; box-shadow: 0 0 0 6px transparent; }
-        }
-
-        .header h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #e2e8f0 0%, #6366f1 50%, #a78bfa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-        }
-
-        .header p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            font-weight: 300;
-        }
-
-        /* Card */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-
-        /* Form grid */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.25rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .form-group label {
-            font-size: 0.78rem;
-            font-weight: 500;
-            color: var(--text-label);
-            letter-spacing: 0.03em;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .form-group label .icon {
-            font-size: 0.9rem;
-        }
-
-        .form-group select,
-        .form-group input {
-            appearance: none;
+        /* Custom select */
+        select {
             -webkit-appearance: none;
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 0.7rem 1rem;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 400;
-            outline: none;
-            transition: all 0.25s ease;
-            cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 0.8rem center;
-            padding-right: 2.2rem;
-        }
-
-        .form-group select:hover,
-        .form-group input:hover {
-            border-color: var(--border-hover);
-            background-color: rgba(30, 41, 69, 0.9);
-        }
-
-        .form-group select:focus,
-        .form-group input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-glow);
-        }
-
-        .form-group select option {
-            background: #1e293b;
-            color: var(--text-primary);
-        }
-
-        /* Submit button */
-        .submit-btn {
-            grid-column: 1 / -1;
-            margin-top: 0.5rem;
-            padding: 0.9rem 2rem;
-            background: linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%);
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
+            background-position: right 12px center;
+            padding-right: 36px;
             cursor: pointer;
+        }
+
+        select option {
+            background: #f5f5f0;
+            color: #0a0a0a;
+        }
+
+        .field-label {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #6a6a6a;
+        }
+
+        .field-input {
+            width: 100%;
+            background: white;
+            border: 1.5px solid #e0e0d8;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: #0a0a0a;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field-input:hover {
+            border-color: #b0b0a8;
+        }
+
+        .field-input:focus {
+            border-color: #0a0a0a;
+            box-shadow: 0 0 0 3px rgba(10,10,10,0.07);
+        }
+
+        .submit-btn {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            background: #0a0a0a;
+            color: #f5f5f0;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 24px;
+            width: 100%;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
             position: relative;
             overflow: hidden;
-            transition: all 0.3s ease;
         }
 
-        .submit-btn::before {
+        .submit-btn::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-            transition: left 0.5s ease;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.2s;
         }
 
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px var(--accent-glow);
-        }
-
-        .submit-btn:hover::before {
-            left: 100%;
+            background: #1a1a1a;
+            box-shadow: 0 8px 24px rgba(10,10,10,0.2);
+            transform: translateY(-1px);
         }
 
         .submit-btn:active {
             transform: translateY(0);
+            box-shadow: none;
         }
 
-        /* Result section */
-        .result-card {
-            margin-top: 1.5rem;
-            padding: 1.5rem;
-            border-radius: 16px;
-            text-align: center;
-            animation: slideUp 0.5s ease;
-            border: 1px solid;
+        .tag {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
         }
 
-        .result-card.approved {
-            background: rgba(16, 185, 129, 0.08);
-            border-color: rgba(16, 185, 129, 0.25);
+        .section-rule {
+            border: none;
+            border-top: 1.5px solid #e0e0d8;
         }
 
-        .result-card.rejected {
-            background: rgba(239, 68, 68, 0.08);
-            border-color: rgba(239, 68, 68, 0.25);
+        /* Animated pulse dot */
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: #22c55e;
+            border-radius: 50%;
+            position: relative;
         }
 
-        .result-card.error {
-            background: rgba(245, 158, 11, 0.08);
-            border-color: rgba(245, 158, 11, 0.25);
+        .live-dot::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50%;
+            border: 2px solid #22c55e;
+            animation: ping 1.5s ease-out infinite;
+            opacity: 0;
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
+        @keyframes ping {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        .result-bar-approved {
+            background: linear-gradient(90deg, #16a34a, #4ade80);
+            animation: barFill 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        .result-bar-rejected {
+            background: linear-gradient(90deg, #dc2626, #f87171);
+            animation: barFill 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
+        }
+
+        @keyframes barFill {
+            from { width: 0%; }
+        }
+
+        .result-wrapper {
+            animation: fadeUp 0.5s ease forwards;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .result-icon {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
+        /* Grid icon numbers */
+        .step-num {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 0.65rem;
+            color: #b0b0a8;
         }
 
-        .result-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 0.3rem;
-        }
-
-        .result-card.approved .result-title { color: var(--success); }
-        .result-card.rejected .result-title { color: var(--danger); }
-        .result-card.error .result-title { color: #f59e0b; }
-
-        .result-prob {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .result-prob span {
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .prob-bar-container {
-            margin-top: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50px;
-            height: 8px;
-            overflow: hidden;
-        }
-
-        .prob-bar {
-            height: 100%;
-            border-radius: 50px;
-            transition: width 1s ease;
-            animation: barFill 1s ease forwards;
-        }
-
-        .prob-bar.low { background: linear-gradient(90deg, #10b981, #34d399); }
-        .prob-bar.high { background: linear-gradient(90deg, #ef4444, #f87171); }
-
-        @keyframes barFill {
-            from { width: 0; }
-        }
-
-        /* Error display */
-        .error-msg {
-            color: #fbbf24;
+        .icon-box {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: #f0f0e8;
+            border: 1.5px solid #e0e0d8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.85rem;
-            margin-top: 0.5rem;
-            word-break: break-word;
+            flex-shrink: 0;
         }
 
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            opacity: 0.5;
-        }
-
-        /* Responsive */
-        @media (max-width: 600px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-            .header h1 {
-                font-size: 1.6rem;
-            }
-            .card {
-                padding: 1.5rem;
-            }
+        @media (max-width: 640px) {
+            .two-col { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen relative">
 
-<div class="container">
-    <div class="header">
-        <div class="header-badge">
-            <span class="dot"></span>
-            AI-Powered Prediction
+    <div class="relative z-10 max-w-2xl mx-auto px-4 py-10">
+
+        <!-- Header -->
+        <header class="mb-8">
+            <!-- Top bar -->
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center gap-2">
+                    <div class="live-dot"></div>
+                    <span class="tag text-green-600">AI Active</span>
+                </div>
+                <span class="tag text-muted">v2.0 · ML Model</span>
+            </div>
+
+            <!-- Title block -->
+            <div class="border-t-2 border-ink pt-5">
+                <p class="tag text-muted mb-1">Financial Intelligence</p>
+                <h1 class="font-display font-800 text-4xl sm:text-5xl text-ink leading-none tracking-tight mb-3">
+                    Loan Approval<br>
+                    <span class="italic font-display font-400">Predictor</span>
+                </h1>
+                <p class="text-muted text-sm font-light max-w-xs leading-relaxed">
+                    Submit applicant details for an instant AI-powered loan approval assessment.
+                </p>
+            </div>
+        </header>
+
+        <!-- Main Card -->
+        <div class="bg-white border border-line rounded-2xl shadow-sm overflow-hidden">
+
+            <!-- Card Header -->
+            <div class="px-6 py-4 border-b border-line flex items-center justify-between bg-paper">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-ink" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="font-display font-600 text-sm text-ink">Application Form</span>
+                </div>
+                <span class="tag text-muted">13 Fields</span>
+            </div>
+
+            <form method="POST" id="loanForm" class="p-6 space-y-6">
+
+                <!-- Section: Personal -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="icon-box">👤</div>
+                        <div>
+                            <p class="font-display font-700 text-xs tracking-widest uppercase text-ink">Personal</p>
+                            <p class="text-xs text-muted">Identity &amp; background</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 two-col">
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Age</label>
+                            <select name="person_age" class="field-input">
+                                <option value="18">18 yrs</option>
+                                <option value="22">22 yrs</option>
+                                <option value="25" selected>25 yrs</option>
+                                <option value="28">28 yrs</option>
+                                <option value="30">30 yrs</option>
+                                <option value="35">35 yrs</option>
+                                <option value="40">40 yrs</option>
+                                <option value="45">45 yrs</option>
+                                <option value="50">50 yrs</option>
+                                <option value="55">55 yrs</option>
+                                <option value="60">60 yrs</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Gender</label>
+                            <select name="person_gender" class="field-input">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Education</label>
+                            <select name="person_education" class="field-input">
+                                <option value="High School">High School</option>
+                                <option value="Associate">Associate</option>
+                                <option value="Bachelor" selected>Bachelor</option>
+                                <option value="Master">Master</option>
+                                <option value="Doctorate">Doctorate</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Home Ownership</label>
+                            <select name="person_home_ownership" class="field-input">
+                                <option value="RENT">Rent</option>
+                                <option value="OWN">Own</option>
+                                <option value="MORTGAGE">Mortgage</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="section-rule">
+
+                <!-- Section: Financial -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="icon-box">💰</div>
+                        <div>
+                            <p class="font-display font-700 text-xs tracking-widest uppercase text-ink">Financial</p>
+                            <p class="text-xs text-muted">Income &amp; employment</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 two-col">
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Annual Income ($)</label>
+                            <select name="person_income" class="field-input">
+                                <option value="15000">$15,000</option>
+                                <option value="20000">$20,000</option>
+                                <option value="30000">$30,000</option>
+                                <option value="40000" selected>$40,000</option>
+                                <option value="50000">$50,000</option>
+                                <option value="60000">$60,000</option>
+                                <option value="80000">$80,000</option>
+                                <option value="100000">$100,000</option>
+                                <option value="150000">$150,000</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Employment Exp.</label>
+                            <select name="person_emp_exp" class="field-input">
+                                <option value="0">0 yrs</option>
+                                <option value="1">1 yr</option>
+                                <option value="2">2 yrs</option>
+                                <option value="3" selected>3 yrs</option>
+                                <option value="5">5 yrs</option>
+                                <option value="7">7 yrs</option>
+                                <option value="10">10 yrs</option>
+                                <option value="15">15 yrs</option>
+                                <option value="20">20 yrs</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="section-rule">
+
+                <!-- Section: Loan Details -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="icon-box">🏦</div>
+                        <div>
+                            <p class="font-display font-700 text-xs tracking-widest uppercase text-ink">Loan Details</p>
+                            <p class="text-xs text-muted">Amount &amp; terms</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 two-col">
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Loan Amount ($)</label>
+                            <select name="loan_amnt" class="field-input">
+                                <option value="2000">$2,000</option>
+                                <option value="5000">$5,000</option>
+                                <option value="8000">$8,000</option>
+                                <option value="10000" selected>$10,000</option>
+                                <option value="15000">$15,000</option>
+                                <option value="20000">$20,000</option>
+                                <option value="25000">$25,000</option>
+                                <option value="30000">$30,000</option>
+                                <option value="35000">$35,000</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Interest Rate (%)</label>
+                            <select name="loan_int_rate" class="field-input">
+                                <option value="5">5%</option>
+                                <option value="7">7%</option>
+                                <option value="8">8%</option>
+                                <option value="10" selected>10%</option>
+                                <option value="12">12%</option>
+                                <option value="14">14%</option>
+                                <option value="15">15%</option>
+                                <option value="18">18%</option>
+                                <option value="20">20%</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Loan % of Income</label>
+                            <select name="loan_percent_income" class="field-input">
+                                <option value="0.05">5%</option>
+                                <option value="0.1">10%</option>
+                                <option value="0.15">15%</option>
+                                <option value="0.2" selected>20%</option>
+                                <option value="0.25">25%</option>
+                                <option value="0.3">30%</option>
+                                <option value="0.35">35%</option>
+                                <option value="0.4">40%</option>
+                                <option value="0.5">50%</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Loan Intent</label>
+                            <select name="loan_intent" class="field-input">
+                                <option value="PERSONAL">Personal</option>
+                                <option value="EDUCATION">Education</option>
+                                <option value="MEDICAL">Medical</option>
+                                <option value="VENTURE">Venture</option>
+                                <option value="HOMEIMPROVEMENT">Home Improvement</option>
+                                <option value="DEBTCONSOLIDATION">Debt Consolidation</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="section-rule">
+
+                <!-- Section: Credit -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="icon-box">⭐</div>
+                        <div>
+                            <p class="font-display font-700 text-xs tracking-widest uppercase text-ink">Credit Profile</p>
+                            <p class="text-xs text-muted">History &amp; score</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 two-col">
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Credit History (yrs)</label>
+                            <select name="cb_person_cred_hist_length" class="field-input">
+                                <option value="2">2 yrs</option>
+                                <option value="3">3 yrs</option>
+                                <option value="5" selected>5 yrs</option>
+                                <option value="7">7 yrs</option>
+                                <option value="10">10 yrs</option>
+                                <option value="15">15 yrs</option>
+                                <option value="20">20 yrs</option>
+                                <option value="25">25 yrs</option>
+                                <option value="30">30 yrs</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="field-label block">Credit Score</label>
+                            <select name="credit_score" class="field-input">
+                                <option value="300">300 — Poor</option>
+                                <option value="400">400 — Poor</option>
+                                <option value="500">500 — Fair</option>
+                                <option value="550">550 — Fair</option>
+                                <option value="600">600 — Good</option>
+                                <option value="650" selected>650 — Good</option>
+                                <option value="700">700 — Very Good</option>
+                                <option value="750">750 — Very Good</option>
+                                <option value="800">800 — Exceptional</option>
+                                <option value="850">850 — Exceptional</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1.5 col-span-2">
+                            <label class="field-label block">Previous Loan Defaults</label>
+                            <div class="flex gap-3">
+                                <label class="flex-1 flex items-center gap-3 bg-paper border border-line rounded-lg px-4 py-3 cursor-pointer hover:border-ink transition-colors has-[:checked]:border-ink has-[:checked]:bg-ink has-[:checked]:text-white group">
+                                    <input type="radio" name="previous_loan_defaults_on_file" value="No" checked class="sr-only">
+                                    <div class="w-4 h-4 rounded-full border-2 border-current flex-shrink-0 flex items-center justify-center">
+                                        <div class="w-2 h-2 rounded-full bg-current opacity-0 group-has-[:checked]:opacity-100 transition-opacity"></div>
+                                    </div>
+                                    <span class="font-display font-600 text-sm">No defaults</span>
+                                </label>
+                                <label class="flex-1 flex items-center gap-3 bg-paper border border-line rounded-lg px-4 py-3 cursor-pointer hover:border-ink transition-colors has-[:checked]:border-ink has-[:checked]:bg-ink has-[:checked]:text-white group">
+                                    <input type="radio" name="previous_loan_defaults_on_file" value="Yes" class="sr-only">
+                                    <div class="w-4 h-4 rounded-full border-2 border-current flex-shrink-0 flex items-center justify-center">
+                                        <div class="w-2 h-2 rounded-full bg-current opacity-0 group-has-[:checked]:opacity-100 transition-opacity"></div>
+                                    </div>
+                                    <span class="font-display font-600 text-sm">Has defaults</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="section-rule">
+
+                <!-- Submit -->
+                <div>
+                    <button type="submit" class="submit-btn" id="predictBtn">
+                        <span class="flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/>
+                            </svg>
+                            Run Prediction
+                        </span>
+                    </button>
+                </div>
+
+            </form>
+
+            <!-- Error State -->
+            {% if error %}
+            <div class="mx-6 mb-6 result-wrapper">
+                <div class="border border-amber-200 bg-amber-50 rounded-xl p-5">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-display font-700 text-sm text-amber-800 mb-1">Prediction Error</p>
+                            <p class="text-xs text-amber-700">{{ error }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Result State -->
+            {% if prediction is not none %}
+            <div class="mx-6 mb-6 result-wrapper">
+                <div class="border rounded-xl overflow-hidden
+                    {% if 'Approved' in prediction %}border-green-200 bg-green-50{% else %}border-red-200 bg-red-50{% endif %}">
+
+                    <!-- Result Header -->
+                    <div class="px-5 py-4 border-b {% if 'Approved' in prediction %}border-green-200{% else %}border-red-200{% endif %} flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg flex items-center justify-center
+                                {% if 'Approved' in prediction %}bg-green-100{% else %}bg-red-100{% endif %}">
+                                {% if 'Approved' in prediction %}
+                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {% else %}
+                                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                    <path d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <p class="font-display font-800 text-sm
+                                    {% if 'Approved' in prediction %}text-green-700{% else %}text-red-700{% endif %}">
+                                    {{ prediction }}
+                                </p>
+                                <p class="text-xs {% if 'Approved' in prediction %}text-green-600{% else %}text-red-600{% endif %} opacity-70">
+                                    AI Assessment Complete
+                                </p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-display font-800 text-xl {% if 'Approved' in prediction %}text-green-700{% else %}text-red-700{% endif %}">
+                                {{ prob }}%
+                            </p>
+                            <p class="text-xs {% if 'Approved' in prediction %}text-green-600{% else %}text-red-600{% endif %} opacity-70">
+                                Default Risk
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Probability Bar -->
+                    <div class="px-5 py-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="field-label {% if 'Approved' in prediction %}text-green-700{% else %}text-red-700{% endif %}">
+                                Default Probability
+                            </span>
+                            <span class="font-display font-700 text-sm {% if 'Approved' in prediction %}text-green-700{% else %}text-red-700{% endif %}">
+                                {{ prob }}%
+                            </span>
+                        </div>
+                        <div class="h-2 rounded-full {% if 'Approved' in prediction %}bg-green-100{% else %}bg-red-100{% endif %} overflow-hidden">
+                            <div class="h-full rounded-full
+                                {% if 'Approved' in prediction %}result-bar-approved{% else %}result-bar-rejected{% endif %}"
+                                style="width: {{ prob }}%">
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-xs opacity-40 {% if 'Approved' in prediction %}text-green-700{% else %}text-red-700{% endif %}">Low risk</span>
+                            <span class="text-xs opacity-40 {% if 'Approved' in prediction %}text-green-700{% else %}text-red-700{% endif %}">High risk</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            {% endif %}
+
         </div>
-        <h1>Loan Approval Predictor</h1>
-        <p>Enter applicant details to predict loan approval likelihood</p>
+
+        <!-- Footer -->
+        <footer class="mt-6 flex items-center justify-between">
+            <p class="text-xs text-muted font-light">Powered by scikit-learn &amp; Flask</p>
+            <div class="flex items-center gap-1.5">
+                <div class="w-1.5 h-1.5 rounded-full bg-muted opacity-40"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-muted opacity-40"></div>
+                <div class="w-1.5 h-1.5 rounded-full bg-muted opacity-40"></div>
+                <span class="text-xs text-muted ml-1">ML Model</span>
+            </div>
+        </footer>
+
     </div>
 
-    <div class="card">
-        <form method="POST" class="form-grid" id="loanForm">
+    <script>
+        // Loading state on submit
+        const form = document.getElementById('loanForm');
+        const btn = document.getElementById('predictBtn');
 
-            <!-- Age -->
-            <div class="form-group">
-                <label><span class="icon">👤</span> Age</label>
-                <select name="person_age" id="person_age">
-                    <option value="18">18</option>
-                    <option value="22">22</option>
-                    <option value="25" selected>25</option>
-                    <option value="28">28</option>
-                    <option value="30">30</option>
-                    <option value="35">35</option>
-                    <option value="40">40</option>
-                    <option value="45">45</option>
-                    <option value="50">50</option>
-                    <option value="55">55</option>
-                    <option value="60">60</option>
-                </select>
-            </div>
-
-            <!-- Gender -->
-            <div class="form-group">
-                <label><span class="icon">⚧</span> Gender</label>
-                <select name="person_gender" id="person_gender">
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                </select>
-            </div>
-
-            <!-- Education -->
-            <div class="form-group">
-                <label><span class="icon">🎓</span> Education</label>
-                <select name="person_education" id="person_education">
-                    <option value="High School">High School</option>
-                    <option value="Associate">Associate</option>
-                    <option value="Bachelor" selected>Bachelor</option>
-                    <option value="Master">Master</option>
-                    <option value="Doctorate">Doctorate</option>
-                </select>
-            </div>
-
-            <!-- Income -->
-            <div class="form-group">
-                <label><span class="icon">💰</span> Annual Income ($)</label>
-                <select name="person_income" id="person_income">
-                    <option value="15000">15,000</option>
-                    <option value="20000">20,000</option>
-                    <option value="30000">30,000</option>
-                    <option value="40000" selected>40,000</option>
-                    <option value="50000">50,000</option>
-                    <option value="60000">60,000</option>
-                    <option value="80000">80,000</option>
-                    <option value="100000">100,000</option>
-                    <option value="150000">150,000</option>
-                </select>
-            </div>
-
-            <!-- Experience -->
-            <div class="form-group">
-                <label><span class="icon">💼</span> Employment Exp (yrs)</label>
-                <select name="person_emp_exp" id="person_emp_exp">
-                    <option value="0">0</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3" selected>3</option>
-                    <option value="5">5</option>
-                    <option value="7">7</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                </select>
-            </div>
-
-            <!-- Loan Amount -->
-            <div class="form-group">
-                <label><span class="icon">🏦</span> Loan Amount ($)</label>
-                <select name="loan_amnt" id="loan_amnt">
-                    <option value="2000">2,000</option>
-                    <option value="5000">5,000</option>
-                    <option value="8000">8,000</option>
-                    <option value="10000" selected>10,000</option>
-                    <option value="15000">15,000</option>
-                    <option value="20000">20,000</option>
-                    <option value="25000">25,000</option>
-                    <option value="30000">30,000</option>
-                    <option value="35000">35,000</option>
-                </select>
-            </div>
-
-            <!-- Interest Rate -->
-            <div class="form-group">
-                <label><span class="icon">📊</span> Interest Rate (%)</label>
-                <select name="loan_int_rate" id="loan_int_rate">
-                    <option value="5">5%</option>
-                    <option value="7">7%</option>
-                    <option value="8">8%</option>
-                    <option value="10" selected>10%</option>
-                    <option value="12">12%</option>
-                    <option value="14">14%</option>
-                    <option value="15">15%</option>
-                    <option value="18">18%</option>
-                    <option value="20">20%</option>
-                </select>
-            </div>
-
-            <!-- Loan % Income -->
-            <div class="form-group">
-                <label><span class="icon">📈</span> Loan % of Income</label>
-                <select name="loan_percent_income" id="loan_percent_income">
-                    <option value="0.05">5%</option>
-                    <option value="0.1">10%</option>
-                    <option value="0.15">15%</option>
-                    <option value="0.2" selected>20%</option>
-                    <option value="0.25">25%</option>
-                    <option value="0.3">30%</option>
-                    <option value="0.35">35%</option>
-                    <option value="0.4">40%</option>
-                    <option value="0.5">50%</option>
-                </select>
-            </div>
-
-            <!-- Credit History -->
-            <div class="form-group">
-                <label><span class="icon">📅</span> Credit History (yrs)</label>
-                <select name="cb_person_cred_hist_length" id="cb_person_cred_hist_length">
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="5" selected>5</option>
-                    <option value="7">7</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                    <option value="25">25</option>
-                    <option value="30">30</option>
-                </select>
-            </div>
-
-            <!-- Credit Score -->
-            <div class="form-group">
-                <label><span class="icon">⭐</span> Credit Score</label>
-                <select name="credit_score" id="credit_score">
-                    <option value="300">300</option>
-                    <option value="400">400</option>
-                    <option value="500">500</option>
-                    <option value="550">550</option>
-                    <option value="600">600</option>
-                    <option value="650" selected>650</option>
-                    <option value="700">700</option>
-                    <option value="750">750</option>
-                    <option value="800">800</option>
-                    <option value="850">850</option>
-                </select>
-            </div>
-
-            <!-- Previous Defaults -->
-            <div class="form-group">
-                <label><span class="icon">⚠️</span> Previous Loan Defaults</label>
-                <select name="previous_loan_defaults_on_file" id="previous_loan_defaults_on_file">
-                    <option value="No">No</option>
-                    <option value="Yes">Yes</option>
-                </select>
-            </div>
-
-            <!-- Home Ownership -->
-            <div class="form-group">
-                <label><span class="icon">🏠</span> Home Ownership</label>
-                <select name="person_home_ownership" id="person_home_ownership">
-                    <option value="RENT">Rent</option>
-                    <option value="OWN">Own</option>
-                    <option value="MORTGAGE">Mortgage</option>
-                    <option value="OTHER">Other</option>
-                </select>
-            </div>
-
-            <!-- Loan Intent -->
-            <div class="form-group full-width">
-                <label><span class="icon">🎯</span> Loan Intent</label>
-                <select name="loan_intent" id="loan_intent">
-                    <option value="PERSONAL">Personal</option>
-                    <option value="EDUCATION">Education</option>
-                    <option value="MEDICAL">Medical</option>
-                    <option value="VENTURE">Venture</option>
-                    <option value="HOMEIMPROVEMENT">Home Improvement</option>
-                    <option value="DEBTCONSOLIDATION">Debt Consolidation</option>
-                </select>
-            </div>
-
-            <button type="submit" class="submit-btn" id="predictBtn">
-                🔍 Predict Loan Approval
-            </button>
-        </form>
-
-        {% if error %}
-        <div class="result-card error">
-            <div class="result-icon">⚠️</div>
-            <div class="result-title">Prediction Error</div>
-            <p class="error-msg">{{ error }}</p>
-        </div>
-        {% endif %}
-
-        {% if prediction is not none %}
-        <div class="result-card {{ 'approved' if 'Approved' in prediction else 'rejected' }}">
-            <div class="result-icon">{{ '🎉' if 'Approved' in prediction else '😔' }}</div>
-            <div class="result-title">{{ prediction }}</div>
-            <p class="result-prob">Default Probability: <span>{{ prob }}%</span></p>
-            <div class="prob-bar-container">
-                <div class="prob-bar {{ 'low' if prob < 50 else 'high' }}" style="width: {{ prob }}%;"></div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <div class="footer">
-        Powered by Machine Learning &bull; Built with Flask &amp; scikit-learn
-    </div>
-</div>
+        if (form && btn) {
+            form.addEventListener('submit', () => {
+                btn.innerHTML = `
+                    <span class="flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                        </svg>
+                        Analyzing...
+                    </span>`;
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+            });
+        }
+    </script>
 
 </body>
 </html>
